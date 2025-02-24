@@ -17,7 +17,8 @@ CORS(app,
          "http://localhost:5173",  # Development
          "http://localhost:5174",
          "http://localhost:5175",
-         "https://yourdomain.com"  # Production
+         "https://crog.gg",       # Production
+         "https://www.crog.gg"    # Production www subdomain
      ],
      supports_credentials=True,
      allow_headers=["Content-Type", "Authorization"],
