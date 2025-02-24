@@ -4,8 +4,24 @@ import openai
 import os
 import json
 import random
+import logging
+import sys
 from dotenv import load_dotenv
 from dummy_resume import DUMMY_RESUME
+
+# Configure logging to work with Gunicorn
+gunicorn_logger = logging.getLogger('gunicorn.error')
+logger = logging.getLogger(__name__)
+logger.handlers = gunicorn_logger.handlers
+logger.setLevel(gunicorn_logger.level)
+
+# Fallback to basic logging if not running under Gunicorn
+if not logger.handlers:
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        stream=sys.stdout
+    )
 
 load_dotenv()
 
@@ -27,9 +43,9 @@ CORS(app,
 # Configure OpenAI
 openai.api_key = os.getenv('OPENAI_API_KEY')
 if not openai.api_key:
-    print("WARNING: OpenAI API key not found in .env file!")
+    logger.warning("OpenAI API key not found in .env file!")
 else:
-    print("OpenAI API key loaded successfully")
+    logger.info("OpenAI API key loaded successfully")
 
 def get_base_content(section):
     """Get the base content for a section from the dummy resume."""
@@ -61,11 +77,11 @@ def regenerate_content():
         return response, 204
         
     try:
-        print("\n=== New Regenerate Request ===")
+        logger.info("=== New Regenerate Request ===")
         data = request.get_json()
         
         if not data:
-            print("Error: No JSON data received")
+            logger.error("Error: No JSON data received")
             return jsonify({
                 'success': False,
                 'error': 'No data provided'
@@ -77,21 +93,21 @@ def regenerate_content():
         use_fantasy = data.get('use_fantasy', False)  # Get fantasy flag from request
         regenerate_target = content.get('regenerate_target') if content else None
         
-        print(f"Processing request for section: {section}")
-        print(f"Is full regeneration: {is_full_regeneration}")
-        print(f"Use fantasy: {use_fantasy}")
-        print(f"Regenerate target: {regenerate_target}")
-        print(f"Received content: {json.dumps(content, indent=2)}")
+        logger.info(f"Processing request for section: {section}")
+        logger.info(f"Is full regeneration: {is_full_regeneration}")
+        logger.info(f"Use fantasy: {use_fantasy}")
+        logger.info(f"Regenerate target: {regenerate_target}")
+        logger.debug(f"Received content: {json.dumps(content, indent=2)}")
         
         if not section:
-            print("Error: No section specified")
+            logger.error("Error: No section specified")
             return jsonify({
                 'success': False,
                 'error': 'Section not specified'
             }), 400
 
         if not openai.api_key:
-            print("Error: OpenAI API key not configured")
+            logger.error("Error: OpenAI API key not configured")
             return jsonify({
                 'success': False,
                 'error': 'OpenAI API key not configured'
@@ -170,8 +186,8 @@ def regenerate_content():
                 """
             
             section_prompt['format'] += fantasy_addition
-            print("Adding fantasy elements to this regeneration!")
-            print(f"Fantasy prompt addition: {fantasy_addition}")
+            logger.info("Adding fantasy elements to this regeneration!")
+            logger.debug(f"Fantasy prompt addition: {fantasy_addition}")
 
         # Handle targeted regeneration for About section
         if section == 'about' and regenerate_target and not is_full_regeneration:
@@ -184,10 +200,10 @@ def regenerate_content():
             elif regenerate_target == 'msk':
                 section_prompt['format'] += "\nOnly rewrite the achievements for the Memorial Sloan Kettering employment entry, keeping all other content exactly the same."
 
-        print(f"Using prompt: {json.dumps(section_prompt, indent=2)}")
+        logger.info(f"Using prompt: {json.dumps(section_prompt, indent=2)}")
 
         try:
-            print("Making OpenAI API request...")
+            logger.info("Making OpenAI API request...")
             messages = [
                 {"role": "system", "content": section_prompt['system']},
                 {"role": "user", "content": f"Original content: {json.dumps(content)}\n\nFormatting instructions: {section_prompt['format']}\n\nPlease rewrite this content, paying special attention to achievements if they exist. Each achievement should be rewritten to be more impactful while maintaining the same core accomplishments and metrics."}
@@ -199,22 +215,22 @@ def regenerate_content():
                 temperature=0.7,
             )
             
-            print("OpenAI API response received successfully")
+            logger.info("OpenAI API response received successfully")
             
             # Get the generated content
             new_content = response.choices[0].message.content
-            print(f"Generated content: {new_content}")
+            logger.debug(f"Generated content: {new_content}")
 
             # Try to parse the response as JSON
             try:
                 parsed_content = json.loads(new_content)
-                print("Successfully parsed response as JSON")
+                logger.info("Successfully parsed response as JSON")
                 return jsonify({
                     'success': True,
                     'content': parsed_content
                 })
             except json.JSONDecodeError as e:
-                print(f"Failed to parse response as JSON: {e}")
+                logger.error(f"Failed to parse response as JSON: {e}")
                 # If parsing fails, return the raw content
                 return jsonify({
                     'success': True,
@@ -222,26 +238,26 @@ def regenerate_content():
                 })
 
         except openai.error.AuthenticationError as e:
-            print(f"OpenAI Authentication Error: {str(e)}")
+            logger.error(f"OpenAI Authentication Error: {str(e)}")
             return jsonify({
                 'success': False,
                 'error': 'Invalid OpenAI API key'
             }), 401
         except openai.error.RateLimitError as e:
-            print(f"OpenAI Rate Limit Error: {str(e)}")
+            logger.error(f"OpenAI Rate Limit Error: {str(e)}")
             return jsonify({
                 'success': False,
                 'error': 'OpenAI API rate limit exceeded'
             }), 429
         except openai.error.OpenAIError as e:
-            print(f"OpenAI API error: {str(e)}")
+            logger.error(f"OpenAI API error: {str(e)}")
             return jsonify({
                 'success': False,
                 'error': f"OpenAI API error: {str(e)}"
             }), 500
 
     except Exception as e:
-        print(f"Error in regenerate_content: {str(e)}")
+        logger.error(f"Error in regenerate_content: {str(e)}")
         return jsonify({
             'success': False,
             'error': str(e)
