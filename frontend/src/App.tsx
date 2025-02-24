@@ -5,6 +5,7 @@ import Portfolio from './components/Portfolio'
 import { defaultResume } from './data/resume'
 
 const API_URL = import.meta.env.VITE_API_URL;
+console.log('API_URL:', API_URL); // Debug log
 
 function App() {
   const [currentContent, setCurrentContent] = useState<{
