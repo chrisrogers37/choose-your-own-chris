@@ -237,19 +237,19 @@ def regenerate_content():
                     'content': new_content
                 })
 
-        except openai.error.AuthenticationError as e:
+        except openai.AuthenticationError as e:
             logger.error(f"OpenAI Authentication Error: {str(e)}")
             return jsonify({
                 'success': False,
                 'error': 'Invalid OpenAI API key'
             }), 401
-        except openai.error.RateLimitError as e:
+        except openai.RateLimitError as e:
             logger.error(f"OpenAI Rate Limit Error: {str(e)}")
             return jsonify({
                 'success': False,
                 'error': 'OpenAI API rate limit exceeded'
             }), 429
-        except openai.error.OpenAIError as e:
+        except openai.APIError as e:
             logger.error(f"OpenAI API error: {str(e)}")
             return jsonify({
                 'success': False,
