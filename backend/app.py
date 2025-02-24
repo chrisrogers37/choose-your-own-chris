@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify, make_response
 from flask_cors import CORS
 from openai import OpenAI
-from openai.types.error import AuthenticationError, RateLimitError, APIError
+from openai import AuthenticationError, RateLimitError, APIError
 import os
 import json
 import random
