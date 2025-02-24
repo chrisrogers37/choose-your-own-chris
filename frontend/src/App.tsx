@@ -6,15 +6,6 @@ import { defaultResume } from './data/resume'
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-interface ApiResponse {
-  success: boolean;
-  content: any;
-  usage?: {
-    total_tokens: number;
-    remaining_tokens: number;
-  };
-}
-
 function App() {
   const [currentContent, setCurrentContent] = useState<{
     about: typeof defaultResume.about;

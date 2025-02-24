@@ -3,8 +3,6 @@ import { CSSTransition } from 'react-transition-group';
 import { defaultResume } from '../data/resume';
 import '../styles/transitions.css';
 
-const API_URL = import.meta.env.VITE_API_URL;
-
 interface AboutProps {
   onRegenerate: () => void;
 }
@@ -13,7 +11,6 @@ type AboutContent = typeof defaultResume.about;
 
 function About({ onRegenerate }: AboutProps) {
   const [content, setContent] = useState<AboutContent>(defaultResume.about);
-  const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [bioInProp, setBioInProp] = useState(true);
   const [citadelInProp, setCitadelInProp] = useState(true);
@@ -88,12 +85,6 @@ function About({ onRegenerate }: AboutProps) {
         <h2>About Me</h2>
       </div>
       
-      {error && (
-        <div className="error-message">
-          {error}
-        </div>
-      )}
-
       <div className="about-content">
         <div className="bio-container">
           <CSSTransition
