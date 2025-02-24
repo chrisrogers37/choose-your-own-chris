@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { CSSTransition } from 'react-transition-group';
-import { defaultResume, getRandomTransition } from '../data/resume';
+import { defaultResume } from '../data/resume';
 import '../styles/transitions.css';
 
 const API_URL = import.meta.env.VITE_API_URL;

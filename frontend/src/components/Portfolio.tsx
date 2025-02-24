@@ -1,5 +1,3 @@
-import React from 'react';
-
 const LINKS = {
   github: "https://github.com/chrisrogers37/",
   shuffify: "https://shuffify.app",

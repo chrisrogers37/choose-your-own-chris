@@ -1,17 +1,10 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import './App.css'
 import About from './components/About'
 import Portfolio from './components/Portfolio'
 import { defaultResume } from './data/resume'
-import { personalInfo } from './config/personal'
 
 const API_URL = import.meta.env.VITE_API_URL;
-
-interface UsageInfo {
-  token_usage: number;
-  token_limit: number;
-  remaining_tokens: number;
-}
 
 interface ApiResponse {
   success: boolean;
@@ -19,40 +12,6 @@ interface ApiResponse {
   usage?: {
     total_tokens: number;
     remaining_tokens: number;
-  };
-}
-
-interface NameResponse extends ApiResponse {
-  content: {
-    display_name: string;
-  };
-}
-
-interface ContentState {
-  about: {
-    email: string;
-    location: string;
-    bio: string;
-    employment: Array<{
-      title: string;
-      company: string;
-      period: string;
-      achievements: string[];
-    }>;
-    education: Array<{
-      school: string;
-      degree: string;
-      year: string;
-    }>;
-    skills: string[];
-    socialLinks: {
-      github: string;
-      hoobe: string;
-      spotify: string;
-    };
-  };
-  name: {
-    name: string;
   };
 }
 
@@ -77,7 +36,7 @@ function App() {
           'Content-Type': 'application/json',
         }
       });
-      const data = await response.json();
+      await response.json();
     } catch (error) {
       console.error('Error fetching usage info:', error);
     }
