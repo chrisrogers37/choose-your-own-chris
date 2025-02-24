@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify, make_response
 from flask_cors import CORS
-import openai
+from openai import OpenAI
+from openai.types.error import AuthenticationError, RateLimitError, APIError
 import os
 import json
 import random
@@ -41,8 +42,8 @@ CORS(app,
      methods=["GET", "POST", "OPTIONS"])
 
 # Configure OpenAI
-openai.api_key = os.getenv('OPENAI_API_KEY')
-if not openai.api_key:
+client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+if not client.api_key:
     logger.warning("OpenAI API key not found in .env file!")
 else:
     logger.info("OpenAI API key loaded successfully")
@@ -106,7 +107,7 @@ def regenerate_content():
                 'error': 'Section not specified'
             }), 400
 
-        if not openai.api_key:
+        if not client.api_key:
             logger.error("Error: OpenAI API key not configured")
             return jsonify({
                 'success': False,
@@ -209,7 +210,7 @@ def regenerate_content():
                 {"role": "user", "content": f"Original content: {json.dumps(content)}\n\nFormatting instructions: {section_prompt['format']}\n\nPlease rewrite this content, paying special attention to achievements if they exist. Each achievement should be rewritten to be more impactful while maintaining the same core accomplishments and metrics."}
             ]
             
-            response = openai.ChatCompletion.create(
+            response = client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=messages,
                 temperature=0.7,
@@ -237,19 +238,19 @@ def regenerate_content():
                     'content': new_content
                 })
 
-        except openai.AuthenticationError as e:
+        except AuthenticationError as e:
             logger.error(f"OpenAI Authentication Error: {str(e)}")
             return jsonify({
                 'success': False,
                 'error': 'Invalid OpenAI API key'
             }), 401
-        except openai.RateLimitError as e:
+        except RateLimitError as e:
             logger.error(f"OpenAI Rate Limit Error: {str(e)}")
             return jsonify({
                 'success': False,
                 'error': 'OpenAI API rate limit exceeded'
             }), 429
-        except openai.APIError as e:
+        except APIError as e:
             logger.error(f"OpenAI API error: {str(e)}")
             return jsonify({
                 'success': False,
