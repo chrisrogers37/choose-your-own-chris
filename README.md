@@ -194,13 +194,9 @@ An interactive portfolio website featuring dynamic content generation using Open
 
 ## Built with Cursor
 
-This project was developed using [Cursor](https://cursor.sh), a modern IDE that combines the power of AI with a sleek, VS Code-based interface. Cursor's AI-powered features significantly accelerated development by providing intelligent code suggestions, helping with debugging, and streamlining the implementation of complex features.
+This project was developed using [Cursor](https://cursor.sh). 
 
-Key benefits of using Cursor:
-- Intelligent code completion and suggestions
-- AI-assisted debugging and problem-solving
-- Seamless integration with Git and terminal
-- Enhanced productivity through AI pair programming
+:)
 
 ## License
 
