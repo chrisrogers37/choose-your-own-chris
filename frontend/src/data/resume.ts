@@ -78,7 +78,7 @@ export const defaultResume: ResumeData = {
       {
         title: "Analytics Engineer",
         company: "Citadel",
-        period: "2021 - Present",
+        period: "2023 - Present",
         achievements: [
           "Worked to streamline and automate the Strategic Finance Data & Analytics team's data workflows, contributing to a cultural shift toward centralized, scalable operations. Helped establish core infrastructure and onboard the team to Google Kubernetes Engine (GKE) and Citadel's Airflow-like scheduler, significantly reducing manual processing time.",
           "Designed and built a configurable Python orchestration framework to automate end-to-end workflows across BigQuery, Python, and Tableau, improving dependency management and reducing redundant code while making onboarding and setup easier.",
