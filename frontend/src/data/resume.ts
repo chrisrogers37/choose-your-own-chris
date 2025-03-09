@@ -22,6 +22,7 @@ export interface AboutContent {
     github: string;
     hoobe: string;
     spotify: string;
+    linkedin: string;
   };
 }
 
@@ -64,6 +65,7 @@ interface ResumeData {
       github: string;
       hoobe: string;
       spotify: string;
+      linkedin: string;
     };
   };
 }
@@ -71,7 +73,7 @@ interface ResumeData {
 export const defaultResume: ResumeData = {
   about: {
     display_name: "Christopher T. Rogers",
-    bio: "Hi, I'm Chris! I'm an Analytics Engineer at Citadel, where I specialize in building scalable data infrastructure and automation solutions. Passionate about identifying complex data challenges and gaps and transforming them into efficient solutions, I combine technical expertise with creative problem-solving to enable data-driven decision making across the organization.\n\nBeyond my core engineering work, I'm deeply interested in audio engineering and music production, often spending my evenings working on tracks or performing as a DJ in New York City venues. Check out some of my musical projects and additional links at the bottom of the page!",
+    bio: "Hey, I'm Chris. Welcome to my digital resume and portfolio.\n\nBy day, I'm an Analytics Engineer at Citadel, where I build scalable data infrastructure and automation solutions. My work focuses on solving complex data challenges, designing efficient pipelines, and enabling data-driven decision-making across the organization.\n\nOutside of work I spend a lot of time on music, producing tracks, experimenting with audio engineering, and DJing in New York City. I enjoy the technical side of both data and music, whether it's optimizing workflows or shaping sound.\n\nFeel free to explore my experience, musical projects, and other interests below. Please reach out if you have any questions. And, while you're here, stay a while.",
     email: "christophertrogers37@gmail.com",
     location: "New York City, New York",
     employment: [
@@ -150,7 +152,8 @@ export const defaultResume: ResumeData = {
     socialLinks: {
       github: "https://github.com/chrisrogers37/",
       hoobe: "https://hoo.be/crog",
-      spotify: "https://open.spotify.com/artist/0UotSScPTiSFPmbmjam2jn"
+      spotify: "https://open.spotify.com/artist/0UotSScPTiSFPmbmjam2jn",
+      linkedin: "https://www.linkedin.com/in/chrisrogers37/"
     }
   }
 }

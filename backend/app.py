@@ -8,13 +8,12 @@ import random
 import logging
 import sys
 from dotenv import load_dotenv
-from dummy_resume import DUMMY_RESUME
 
 # Configure logging to work with Gunicorn
 gunicorn_logger = logging.getLogger('gunicorn.error')
 logger = logging.getLogger(__name__)
 logger.handlers = gunicorn_logger.handlers
-logger.setLevel(gunicorn_logger.level)
+logger.setLevel(logging.INFO)  # Set to INFO to see all important logs
 
 # Fallback to basic logging if not running under Gunicorn
 if not logger.handlers:
@@ -48,10 +47,6 @@ if not client.api_key:
 else:
     logger.info("OpenAI API key loaded successfully")
 
-def get_base_content(section):
-    """Get the base content for a section from the dummy resume."""
-    return DUMMY_RESUME.get(section, {})
-
 def get_fantasy_prompt(use_fantasy=False):
     """Get the fantasy prompt addition if requested."""
     if use_fantasy:
@@ -79,7 +74,10 @@ def regenerate_content():
         
     try:
         logger.info("=== New Regenerate Request ===")
+        logger.info(f"Request Headers: {dict(request.headers)}")
+        
         data = request.get_json()
+        logger.info(f"Raw request data: {json.dumps(data, indent=2)}")
         
         if not data:
             logger.error("Error: No JSON data received")
@@ -91,14 +89,14 @@ def regenerate_content():
         section = data.get('section')
         content = data.get('content')
         is_full_regeneration = data.get('is_full_regeneration', False)
-        use_fantasy = data.get('use_fantasy', False)  # Get fantasy flag from request
+        use_fantasy = data.get('use_fantasy', False)
         regenerate_target = content.get('regenerate_target') if content else None
         
         logger.info(f"Processing request for section: {section}")
         logger.info(f"Is full regeneration: {is_full_regeneration}")
         logger.info(f"Use fantasy: {use_fantasy}")
         logger.info(f"Regenerate target: {regenerate_target}")
-        logger.debug(f"Received content: {json.dumps(content, indent=2)}")
+        logger.info(f"Content to regenerate: {json.dumps(content, indent=2)}")
         
         if not section:
             logger.error("Error: No section specified")
@@ -210,6 +208,8 @@ def regenerate_content():
                 {"role": "user", "content": f"Original content: {json.dumps(content)}\n\nFormatting instructions: {section_prompt['format']}\n\nPlease rewrite this content, paying special attention to achievements if they exist. Each achievement should be rewritten to be more impactful while maintaining the same core accomplishments and metrics."}
             ]
             
+            logger.info(f"OpenAI request messages: {json.dumps(messages, indent=2)}")
+            
             response = client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=messages,
@@ -217,10 +217,11 @@ def regenerate_content():
             )
             
             logger.info("OpenAI API response received successfully")
+            logger.info(f"Raw OpenAI response: {response}")
             
             # Get the generated content
             new_content = response.choices[0].message.content
-            logger.debug(f"Generated content: {new_content}")
+            logger.info(f"Generated content: {new_content}")
 
             # Try to parse the response as JSON
             try:
@@ -232,11 +233,13 @@ def regenerate_content():
                 })
             except json.JSONDecodeError as e:
                 logger.error(f"Failed to parse response as JSON: {e}")
+                logger.error(f"Raw content that failed to parse: {new_content}")
                 # If parsing fails, return the raw content
                 return jsonify({
-                    'success': True,
-                    'content': new_content
-                })
+                    'success': False,
+                    'error': f'Failed to parse OpenAI response as JSON: {str(e)}',
+                    'raw_content': new_content
+                }), 400
 
         except AuthenticationError as e:
             logger.error(f"OpenAI Authentication Error: {str(e)}")
@@ -248,35 +251,33 @@ def regenerate_content():
             logger.error(f"OpenAI Rate Limit Error: {str(e)}")
             return jsonify({
                 'success': False,
-                'error': 'OpenAI API rate limit exceeded'
+                'error': 'OpenAI rate limit exceeded'
             }), 429
         except APIError as e:
-            logger.error(f"OpenAI API error: {str(e)}")
+            logger.error(f"OpenAI API Error: {str(e)}")
             return jsonify({
                 'success': False,
-                'error': f"OpenAI API error: {str(e)}"
+                'error': f'OpenAI API error: {str(e)}'
+            }), 500
+        except Exception as e:
+            logger.error(f"Unexpected error: {str(e)}", exc_info=True)
+            return jsonify({
+                'success': False,
+                'error': f'Unexpected error: {str(e)}'
             }), 500
 
     except Exception as e:
-        logger.error(f"Error in regenerate_content: {str(e)}")
+        logger.error(f"Request processing error: {str(e)}", exc_info=True)
         return jsonify({
             'success': False,
-            'error': str(e)
+            'error': f'Request processing error: {str(e)}'
         }), 500
 
-@app.route('/api/limits', methods=['GET', 'OPTIONS'])
+@app.route('/api/limits', methods=['GET'])
 def get_limits():
-    if request.method == 'OPTIONS':
-        response = make_response()
-        response.headers.add('Access-Control-Allow-Origin', request.headers.get('Origin', '*'))
-        response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
-        response.headers.add('Access-Control-Allow-Methods', 'GET,OPTIONS')
-        response.headers.add('Access-Control-Allow-Credentials', 'true')
-        return response, 204
-
     return jsonify({
-        'token_usage': 0,
         'token_limit': 1000000,
+        'token_usage': 0,
         'remaining_tokens': 1000000
     })
 
